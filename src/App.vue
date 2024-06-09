@@ -141,7 +141,7 @@
 }
 </style>
 
-<script setup>
+<script setup lang="ts">
 import { computed, ref } from "vue";
 //inputs
 const h_ie = ref(1.1e3);
@@ -189,4 +189,17 @@ const z_in = computed(() => r_in.value + r_s.value);
 const z_out = computed(() => 1 / (h_oe.value + (1 + h_fe.value) / r_e.value));
 const a_i_total = computed(() => a_i.value);
 const a_v_total = computed(() => v_out.value / v_in.value);
+
+// AC analysis
+const t = ref(0);
+const v_in_ac_points = ref<number[]>([]);
+const v_out_ac_points = ref<number[]>([]);
+const F = 1e3;
+setInterval(() => {
+  //TODO: for now i'm using 10mV amplitude but this should configurable.
+  const v_in_ac = 0.01 * Math.sin(2 * Math.PI * F * t.value);
+  v_in_ac_points.value.push(v_in_ac);
+  v_out_ac_points.value.push(a_v_total.value * v_in_ac);
+  t.value += 0.01;
+}, 10);
 </script>
