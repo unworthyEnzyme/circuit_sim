@@ -143,9 +143,15 @@
   gap: 1rem;
 }
 
-.line {
+.blue-line {
   fill: none;
   stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+.red-line {
+  fill: none;
+  stroke: red;
   stroke-width: 1.5px;
 }
 </style>
@@ -208,7 +214,7 @@ const MILLISECONDS_TO_SECONDS = 0.001;
 const t = ref(0);
 requestAnimationFrame(function step(time) {
   const v_in_ac =
-    0.01 * Math.sin(2 * Math.PI * F * time * MILLISECONDS_TO_SECONDS);
+    v_in.value * Math.sin(2 * Math.PI * F * time * MILLISECONDS_TO_SECONDS);
   v_in_ac_points.value.push({
     time: time * MILLISECONDS_TO_SECONDS,
     value: v_in_ac,
@@ -227,7 +233,8 @@ watch(t, () => {
 
 const chart = ref<SVGSVGElement | null>(null);
 const updateChart = () => {
-  const data = v_in_ac_points;
+  const first_dataset = v_in_ac_points;
+  const second_dataset = v_out_ac_points;
   const svg = d3.select(chart.value);
   svg.selectAll("*").remove();
 
@@ -246,13 +253,19 @@ const updateChart = () => {
   const y = d3
     .scaleLinear()
     .domain([
-      d3.min(data.value, (d) => d.value) ?? 1,
-      d3.max(data.value, (d) => d.value) ?? 1,
+      Math.min(
+        d3.min(first_dataset.value, (d) => d.value) ?? 1,
+        d3.min(second_dataset.value, (d) => d.value) ?? 1
+      ),
+      Math.max(
+        d3.max(first_dataset.value, (d) => d.value) ?? 1,
+        d3.max(second_dataset.value, (d) => d.value) ?? 1
+      ),
     ]) // Fixed domain from -0.01 to 0.01
     .range([height, 0]);
 
   const line = d3
-    .line()
+    .line<{ time: number; value: number }>()
     .x((d) => x(d.time)) // Offset time to keep the latest 10 seconds in view
     .y((d) => y(d.value));
 
@@ -269,11 +282,17 @@ const updateChart = () => {
   g.append("g").attr("class", "axis axis--y").call(d3.axisLeft(y));
 
   g.append("path")
-    .datum(data.value)
-    .attr("class", "line")
+    .datum(first_dataset.value)
     .attr("d", line)
     .attr("fill", "none")
-    .attr("stroke", "steelblue")
+    .attr("stroke", "#35A7FF")
+    .attr("stroke-width", 1.5);
+
+  g.append("path")
+    .datum(second_dataset.value)
+    .attr("d", line)
+    .attr("fill", "none")
+    .attr("stroke", "#FF5964")
     .attr("stroke-width", 1.5);
 };
 </script>
