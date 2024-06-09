@@ -124,6 +124,9 @@
         <li>A<sub>i</sub> (total) = {{ a_i_total }}</li>
         <li>A<sub>v</sub> (total) = {{ a_v_total }}</li>
       </ul>
+      <div>
+        <svg ref="chart" width="800" height="400"></svg>
+      </div>
     </div>
   </div>
 </template>
@@ -141,8 +144,9 @@
 }
 </style>
 
-<script setup>
-import { computed, ref } from "vue";
+<script setup lang="ts">
+import { computed, ref, watch } from "vue";
+import * as d3 from "d3";
 //inputs
 const h_ie = ref(1.1e3);
 const h_re = ref(2.5e-4);
@@ -189,4 +193,94 @@ const z_in = computed(() => r_in.value + r_s.value);
 const z_out = computed(() => 1 / (h_oe.value + (1 + h_fe.value) / r_e.value));
 const a_i_total = computed(() => a_i.value);
 const a_v_total = computed(() => v_out.value / v_in.value);
+
+// AC analysis
+const v_in_ac_points = ref<{ time: number; value: number }[]>([]);
+const v_out_ac_points = ref<{ time: number; value: number }[]>([]);
+const F = 1;
+const MILLISECONDS_TO_SECONDS = 0.001;
+const t = ref(0);
+requestAnimationFrame(function step(time) {
+  const v_in_ac =
+    v_in.value * Math.sin(2 * Math.PI * F * time * MILLISECONDS_TO_SECONDS);
+  v_in_ac_points.value.push({
+    time: time * MILLISECONDS_TO_SECONDS,
+    value: v_in_ac,
+  });
+  v_out_ac_points.value.push({
+    time: time * MILLISECONDS_TO_SECONDS,
+    value: a_v_total.value * v_in_ac,
+  });
+  t.value = time * MILLISECONDS_TO_SECONDS;
+  requestAnimationFrame(step);
+});
+
+watch(t, () => {
+  updateChart();
+});
+
+const chart = ref<SVGSVGElement | null>(null);
+const updateChart = () => {
+  const first_dataset = v_in_ac_points;
+  const second_dataset = v_out_ac_points;
+  const svg = d3.select(chart.value);
+  svg.selectAll("*").remove();
+
+  const margin = { top: 20, right: 20, bottom: 30, left: 50 };
+  const width = +svg.attr("width") - margin.left - margin.right;
+  const height = +svg.attr("height") - margin.top - margin.bottom;
+  const g = svg
+    .append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+  const x = d3
+    .scaleLinear()
+    .domain([Math.max(0, t.value - 10), Math.max(10, t.value)]) // Fixed domain from 0 to 10 seconds
+    .range([0, width]);
+
+  const y = d3
+    .scaleLinear()
+    .domain([
+      Math.min(
+        d3.min(first_dataset.value, (d) => d.value) ?? 1,
+        d3.min(second_dataset.value, (d) => d.value) ?? 1
+      ),
+      Math.max(
+        d3.max(first_dataset.value, (d) => d.value) ?? 1,
+        d3.max(second_dataset.value, (d) => d.value) ?? 1
+      ),
+    ]) // Fixed domain from -0.01 to 0.01
+    .range([height, 0]);
+
+  const line = d3
+    .line<{ time: number; value: number }>()
+    .x((d) => x(d.time)) // Offset time to keep the latest 10 seconds in view
+    .y((d) => y(d.value));
+
+  g.append("g")
+    .attr("class", "axis axis--x")
+    .attr("transform", `translate(0,${height})`)
+    .call(
+      d3
+        .axisBottom(x)
+        .ticks(10)
+        .tickFormat((d) => `${d}s`)
+    );
+
+  g.append("g").attr("class", "axis axis--y").call(d3.axisLeft(y));
+
+  g.append("path")
+    .datum(first_dataset.value)
+    .attr("d", line)
+    .attr("fill", "none")
+    .attr("stroke", "#35A7FF")
+    .attr("stroke-width", 1.5);
+
+  g.append("path")
+    .datum(second_dataset.value)
+    .attr("d", line)
+    .attr("fill", "none")
+    .attr("stroke", "#FF5964")
+    .attr("stroke-width", 1.5);
+};
 </script>
