@@ -142,18 +142,6 @@
   display: flex;
   gap: 1rem;
 }
-
-.blue-line {
-  fill: none;
-  stroke: steelblue;
-  stroke-width: 1.5px;
-}
-
-.red-line {
-  fill: none;
-  stroke: red;
-  stroke-width: 1.5px;
-}
 </style>
 
 <script setup lang="ts">
