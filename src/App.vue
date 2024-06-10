@@ -2,6 +2,7 @@
   <div class="row">
     <div>
       <div class="column">
+        <img src="./assets/circuit.png" alt="" width="300" />
         <h2>H Parametreleri</h2>
         <label for="h_ie">
           h<sub>ie</sub>
@@ -104,6 +105,7 @@
       </div>
     </div>
     <div class="column">
+      <img src="./assets/circuit-dc.png" alt="" width="300" />
       <ul>
         <li>I<sub>B</sub> = {{ i_b.toExponential() }}</li>
         <li>I<sub>C</sub> = {{ i_c.toExponential() }}</li>
@@ -114,6 +116,7 @@
       </ul>
     </div>
     <div class="column">
+      <img src="./assets/circuit-ac.png" width="300" />
       <ul>
         <li>V<sub>out</sub> = {{ v_out.toExponential() }}</li>
         <li>R<sub>in</sub> = {{ r_in.toExponential() }}</li>
@@ -179,10 +182,14 @@ const v_ce = computed(
 );
 const v_cb = computed(() => v_ce.value + v_be);
 
+function isClose(a: number, b: number, tolerance = 0.001) {
+  return Math.abs(a - b) < tolerance;
+}
+
 const calisma_bolgesi = computed(() => {
-  if (v_be > 0.7 && v_ce.value > v_be) return "Aktif Bolge";
-  if (v_be > 0.7 && v_ce.value < v_be) return "Doyma Bolgesi";
-  if (v_be < 0.7) return "Kesik Bolge";
+  if (v_ce.value > v_be) return "Aktif Bolge";
+  if (isClose(v_ce.value, 0.2, 0.2)) return "Doyma Bolgesi";
+  return "Kesme Bolgesi";
 });
 
 const v_out = computed(() => i_e.value * r_l.value);
