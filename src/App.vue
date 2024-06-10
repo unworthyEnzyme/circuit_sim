@@ -119,13 +119,11 @@
       <img src="./assets/circuit-ac.png" width="300" />
       <ul>
         <li>V<sub>out</sub> = {{ v_out.toExponential() }}</li>
-        <li>R<sub>in</sub> = {{ r_in.toExponential() }}</li>
-        <li>A<sub>i</sub> = {{ a_i }}</li>
-        <li>A<sub>v</sub> = {{ a_v }}</li>
-        <li>Z<sub>in</sub> = {{ z_in }}</li>
-        <li>Z<sub>out</sub> = {{ z_out }}</li>
-        <li>A<sub>i</sub> (total) = {{ a_i_total }}</li>
-        <li>A<sub>v</sub> (total) = {{ a_v_total }}</li>
+        <li>K<sub>ri</sub> = {{ r_in.toExponential() }}</li>
+        <li>K<sub>i</sub> = {{ a_i }}</li>
+        <li>K<sub>v</sub> = {{ a_v }}</li>
+        <li>K<sub>ig</sub> = {{ a_i_total }}</li>
+        <li>K<sub>vg</sub> = {{ a_v_total }}</li>
       </ul>
       <div>
         <svg ref="chart" width="800" height="400"></svg>
@@ -196,8 +194,8 @@ const v_out = computed(() => i_e.value * r_l.value);
 const r_in = computed(() => h_ie.value / (1 + h_fe.value));
 const a_i = computed(() => 1 + h_fe.value);
 const a_v = computed(() => v_out.value / v_in.value);
-const z_in = computed(() => r_in.value + r_s.value);
-const z_out = computed(() => 1 / (h_oe.value + (1 + h_fe.value) / r_e.value));
+// const z_in = computed(() => r_in.value + r_s.value);
+// const z_out = computed(() => 1 / (h_oe.value + (1 + h_fe.value) / r_e.value));
 const a_i_total = computed(() => a_i.value);
 const a_v_total = computed(() => v_out.value / v_in.value);
 
