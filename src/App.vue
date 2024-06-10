@@ -148,9 +148,13 @@
 import { computed, ref, watch } from "vue";
 import * as d3 from "d3";
 //inputs
+// Giriş Empedansı.
 const h_ie = ref(1.1e3);
+// Geri Besleme Gerilimi.
 const h_re = ref(2.5e-4);
+// Akım Kazancı
 const h_fe = ref(100);
+// Çıkış Empedansı
 const h_oe = ref(25e-6);
 
 const r_c = ref(4.7e3);
@@ -176,13 +180,9 @@ const v_ce = computed(
 const v_cb = computed(() => v_ce.value + v_be);
 
 const calisma_bolgesi = computed(() => {
-  if (v_ce.value < 0) {
-    return "Kesim Bölgesi";
-  } else if (v_ce.value < v_be) {
-    return "Doyma Bölgesi";
-  } else {
-    return "Aktif Bölge";
-  }
+  if (v_be > 0.7 && v_ce.value > v_be) return "Aktif Bolge";
+  if (v_be > 0.7 && v_ce.value < v_be) return "Doyma Bolgesi";
+  if (v_be < 0.7) return "Kesik Bolge";
 });
 
 const v_out = computed(() => i_e.value * r_l.value);
